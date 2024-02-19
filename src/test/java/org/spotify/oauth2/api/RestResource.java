@@ -1,48 +1,48 @@
-package org.spotify.oauth2.api.applicationApi;
+package org.spotify.oauth2.api;
 
 import io.restassured.response.Response;
-import org.spotify.oauth2.pojo.Playlists;
+
+import java.util.HashMap;
 
 import static io.restassured.RestAssured.given;
-import static org.spotify.oauth2.api.SpecBuilder.getRequestSpec;
-import static org.spotify.oauth2.api.SpecBuilder.getResponseSpec;
+import static org.spotify.oauth2.api.Route.API;
+import static org.spotify.oauth2.api.Route.TOKEN;
+import static org.spotify.oauth2.api.SpecBuilder.*;
 
-public class PlaylistApi {
-    static String access_token="BQC8idB-P6qTT_NNzT4bfALv-Ofui5mfXK0ROZR2ZyTOIBKujkA2F9zn6pOAsiHtVtRlDRb98vPLH0dFj6RvIc1r8_Muf7gFxkjlvP6ZSDnBCxideekD4RJp34-bzNMyexu5k-nZOFX_0rE_UXB2aPp2nYuGIvn-DxaZpUd5A7uG9B0tR3WY9bYLzM8fKUkRQSThLMwAQeyQYhxtGA0p-NnPcAQevlQeuHPvJBek4qMU8dhEM--YpMWpVuP7ZNMy8H5iOSuscuJUglXP";
-    public static Response post(Playlists requestPlaylists){
+public class RestResource {
+    public static Response post(String path, String token, Object requestPayload){
         return given(getRequestSpec()).
-                body(requestPlaylists).
-                header("Authorization","Bearer "+access_token).
-        when().post("/users/31pdz2tzh3lt35lb5qt5ooar5lyu/playlists").
+                body(requestPayload).
+                header("Authorization","Bearer "+token).
+        when().post(path).
         then().spec(getResponseSpec()).
                 extract().
                 response();
     }
 
-    public static Response post(String token, Playlists requestPlaylists){
+    public static Response postAccount(HashMap<String,String> formParams){
+        return given(getAccountRequestSpec()).
+                formParams(formParams).
+                when().post(API+TOKEN).
+                then().spec(getResponseSpec()).
+                extract().
+                response();
+    }
+
+    public static Response get(String path, String token){
         return given(getRequestSpec()).
-                body(requestPlaylists).
                 header("Authorization","Bearer "+token).
-                when().post("/users/31pdz2tzh3lt35lb5qt5ooar5lyu/playlists").
+                when().get(path).
                 then().spec(getResponseSpec()).
                 extract().
                 response();
     }
 
-    public static Response get(String playlistId){
+    public static Response update(String path, String token, Object requestPayload){
         return given(getRequestSpec()).
-                header("Authorization","Bearer "+access_token).
-                when().get("/playlists/"+playlistId).
-                then().spec(getResponseSpec()).
-                extract().
-                response();
-    }
-
-    public static Response update(String playlistId,Playlists requestPlaylists ){
-        return given(getRequestSpec()).
-                body(requestPlaylists).
-                header("Authorization","Bearer "+access_token).
-                when().put("/playlists/"+playlistId).
+                body(requestPayload).
+                header("Authorization","Bearer "+token).
+                when().put(path).
                 then().spec(getResponseSpec()).
                 extract().
                 response();
