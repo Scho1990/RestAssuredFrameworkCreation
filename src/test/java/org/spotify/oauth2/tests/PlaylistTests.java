@@ -2,16 +2,18 @@ package org.spotify.oauth2.tests;
 
 import io.qameta.allure.*;
 import io.restassured.response.Response;
+import org.spotify.oauth2.api.StatusCode;
 import org.spotify.oauth2.api.applicationApi.PlaylistApi;
 import org.spotify.oauth2.pojo.Error;
 import org.spotify.oauth2.pojo.Playlists;
 import org.spotify.oauth2.utils.DataLoader;
+import org.spotify.oauth2.utils.FakerUtils;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
-public class PlaylistTests {
+public class PlaylistTests extends BaseTest{
 
     @Step("Adding playlist name, description and playlist accessibility")
     public Playlists playlistBuilder(String name,String description,boolean _public){
@@ -22,7 +24,7 @@ public class PlaylistTests {
         return requestPlaylists;
     }
 
-    @Step("Cheking Playlist name, description and accessibility in response")
+    @Step("Checking Playlist name, description and accessibility in response")
     public void assertPlaylistEquals(Playlists responsePlaylists, Playlists requestPlaylists){
         assertThat(responsePlaylists.getName(),equalTo(requestPlaylists.getName()));
         assertThat(responsePlaylists.getDescription(),equalTo(requestPlaylists.getDescription()));
@@ -52,9 +54,9 @@ public class PlaylistTests {
     @Description("This test case is related to create a playlist")
     @Test(description = "Should Be Able To Create A Playlist")
     public void shouldBeAbleToCreateAPlaylist(){
-        Playlists requestPlaylists = playlistBuilder("My New Playlist Created","My New playlist description",false);
+        Playlists requestPlaylists = playlistBuilder(FakerUtils.generateName("Playlists"),FakerUtils.generateDescription("Description"),false);
         Response response = PlaylistApi.post(requestPlaylists);
-        assertStatusCode(response.statusCode(),201);
+        assertStatusCode(response.statusCode(), StatusCode.CODE_201.getCode());
         Playlists responsePlaylists = response.as(Playlists.class);
         assertPlaylistEquals(responsePlaylists,requestPlaylists);
     }
@@ -64,7 +66,7 @@ public class PlaylistTests {
     @Test(description = "Should Be Able To Get A Playlist")
     public void shouldBeAbleToGetAPlaylist(){
         Response response = PlaylistApi.get(DataLoader.getInstance().getPlaylistId());
-        assertStatusCode(response.statusCode(),200);
+        assertStatusCode(response.statusCode(),StatusCode.CODE_200.getCode());
         System.out.println("Request Body of Get: "+response.getBody().jsonPath().getString("name"));
         assertThat(response.getBody().jsonPath().getString("name"),equalTo("My New Playlist"));
         assertThat(response.getBody().jsonPath().getString("description"),equalTo("My New playlist description"));
@@ -77,29 +79,29 @@ public class PlaylistTests {
     public void shouldBeAbleToUpdateAPlaylist(){
         Playlists requestPlaylists = playlistBuilder("My New Playlist","My New playlist description",false);
         Response response = PlaylistApi.update(DataLoader.getInstance().getUpdatePlaylistId(), requestPlaylists);
-        assertStatusCode(response.statusCode(),200);
+        assertStatusCode(response.statusCode(),StatusCode.CODE_200.getCode());
     }
 
     @Severity(SeverityLevel.BLOCKER)
     @Description("This test case is related to user is not able to create a playlist with blank name")
     @Test(description = "Should Not Be Able To Create A Playlist With Blank Name")
     public void shouldNotBeAbleToCreateAPlaylistWithBlankName(){
-        Playlists requestPlaylists = playlistBuilder("","My New playlist description",false);
+        Playlists requestPlaylists = playlistBuilder("",FakerUtils.generateDescription("Description"),false);
         Response response = PlaylistApi.post(requestPlaylists);
-        assertStatusCode(response.statusCode(),400);
+        assertStatusCode(response.statusCode(),StatusCode.CODE_400.getCode());
         Error responseError = response.as(Error.class);
-        assertNegativeScenarioPlaylistEquals(responseError,"Missing required field: name",400);
+        assertNegativeScenarioPlaylistEquals(responseError,StatusCode.CODE_400.getMsg(), StatusCode.CODE_400.getCode());
     }
 
     @Severity(SeverityLevel.TRIVIAL)
     @Description("This test case is related to user is not able to create a playlist with invalid/expired token")
     @Test(description = "Should Not Be Able To Create A Playlist With Invalid Token")
     public void shouldNotBeAbleToCreateAPlaylistWithInvalidToken(){
-        Playlists requestPlaylists = playlistBuilder("My New Playlist","My New playlist description",false);
+        Playlists requestPlaylists = playlistBuilder(FakerUtils.generateName("Playlists"),FakerUtils.generateDescription("Description"),false);
         Response response = PlaylistApi.post("12345",requestPlaylists);
-        assertStatusCode(response.statusCode(),401);
+        assertStatusCode(response.statusCode(),StatusCode.CODE_401.getCode());
         Error responseError = response.as(Error.class);
-        assertNegativeScenarioPlaylistEquals(responseError,"Invalid access token",401);
+        assertNegativeScenarioPlaylistEquals(responseError,StatusCode.CODE_401.getMsg(), StatusCode.CODE_401.getCode());
     }
 
 

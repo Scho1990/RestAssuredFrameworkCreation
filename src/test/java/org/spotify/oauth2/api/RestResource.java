@@ -13,7 +13,8 @@ public class RestResource {
     public static Response post(String path, String token, Object requestPayload){
         return given(getRequestSpec()).
                 body(requestPayload).
-                header("Authorization","Bearer "+token).
+                auth().oauth2(token).
+                //header("Authorization","Bearer "+token).
         when().post(path).
         then().spec(getResponseSpec()).
                 extract().
